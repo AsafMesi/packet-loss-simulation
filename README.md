@@ -1,4 +1,4 @@
-# Complete Guide: Comparing TCP and UDP with a Simple Example
+# Comparing TCP and UDP with a Simple Example
 
 This guide will walk you through the process of creating client-server scripts for both TCP and UDP protocols to demonstrate the differences in data transmission reliability. We will also cover how to simulate network issues using `netem` and create a Bash script to automate the process.
 
