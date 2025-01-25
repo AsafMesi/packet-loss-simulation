@@ -144,17 +144,30 @@ Create a Bash script to automate the entire process.
 ```bash
 #!/bin/bash
 
-SERVER_SCRIPT=$1
-CLIENT_SCRIPT=$2
+TYPE=$1
+
+SERVER_SCRIPT="${TYPE}_server.py"
+CLIENT_SCRIPT="${TYPE}_client.py"
 PACKET_LOSS=10
 
-if [ -z "$SERVER_SCRIPT" ] || [ -z "$CLIENT_SCRIPT" ]; then
-  echo "Usage: $0 <server_script> <client_script>"
+if [ -z "$TYPE" ] || [ ! -f "$SERVER_SCRIPT" ] || [ ! -f "$CLIENT_SCRIPT" ]; then
+  echo "Usage: $0 <type> (tcp / udp / kcp)"
+  echo "Make sure you have the files <type>_server.py and <type>_client.py in the same directory"
   exit 1
 fi
 
+if [[ $(uname) != "Linux" ]]; then
+  echo "[Error] This script is only supported on Linux."
+  exit 1
+fi
+
+echo "[Bash Script] Detected Linux environment."
+
 # Apply packet loss
-sudo tc qdisc add dev lo root netem loss ${PACKET_LOSS}%
+if ! sudo tc qdisc add dev lo root handle 1: netem loss ${PACKET_LOSS}% 2>/dev/null; then
+  echo "[Error] Failed to add netem qdisc. Ensure 'tc' is installed and supported on your system."
+  exit 1
+fi
 
 echo "[Bash Script] Starting server..."
 python3 $SERVER_SCRIPT &
@@ -171,10 +184,9 @@ echo "[Bash Script] Shutting down server..."
 kill $SERVER_PID
 
 # Remove packet loss
-sudo tc qdisc del dev lo root netem
+sudo tc qdisc del dev lo root handle 1: 2>/dev/null || echo "[Warning] Failed to remove netem qdisc."
 
 echo "[Bash Script] Test completed."
-```
 
 ### Usage
 1. Make the script executable:
@@ -183,10 +195,10 @@ echo "[Bash Script] Test completed."
    ```
 2. Run the script:
    ```bash
-   ./run_test.sh tcp_server.py tcp_client.py
+   ./run_test.sh tcp
    ```
 
-You can replace `tcp_server.py` and `tcp_client.py` with `udp_server.py` and `udp_client.py` to test UDP.
+You can replace `tcp` with `udp` to test UDP.
 
 ## Explanation of Results
 - **TCP:** You should see no mismatches because TCP ensures reliable delivery of data.
