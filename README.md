@@ -187,6 +187,7 @@ kill $SERVER_PID
 sudo tc qdisc del dev lo root handle 1: 2>/dev/null || echo "[Warning] Failed to remove netem qdisc."
 
 echo "[Bash Script] Test completed."
+```
 
 ### Usage
 1. Make the script executable:
